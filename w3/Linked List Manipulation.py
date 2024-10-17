@@ -19,104 +19,127 @@
 # reverse: đảo ngược thứ tự các phần tử của danh sách (không được cấp phát mới các phần tử, chỉ được thay đổi mối nối liên kết)
 # Output
 # Ghi ra dãy khóa của danh sách thu được sau 1 chuỗi các lệnh thao tác đã cho
-import sys
 class Node:
     def __init__(self, key):
         self.key = key
         self.next = None
-        self.prev = None
+
 class LinkedList:
     def __init__(self):
         self.head = None
-        self.next = None
-    def addLast(self,key):
-        if self.head == None:
-            self.head = Node(key)
-        else:
-            cur = self.head
-            while cur.next != None:
-                cur = cur.next
-            cur.next = Node(key)
-            cur.next.prev = cur
-    def addFirst(self,key):
-        if self.head == None:
-            self.head = Node(key)
-        else:
-            cur = self.head
-            self.head = Node(key)
-            self.head.next = cur
-            cur.prev = self.head
-    def addAfter(self,u,v):
-        cur = self.head
-        while cur != None:
-            if cur.key == v:
-                temp = cur.next
-                cur.next = Node(u)
-                cur.next.next = temp
-                cur.next.prev = cur
-                if temp != None:
-                    temp.prev = cur.next
-                break
-            cur = cur.next
-    def addBefore(self,u,v):
-        cur = self.head
-        while cur != None:
-            if cur.key == v:
-                temp = cur.prev
-                cur.prev = Node(u)
-                cur.prev.prev = temp
-                cur.prev.next = cur
-                if temp != None:
-                    temp.next = cur.prev
-                break
-            cur = cur.next
-    def remove(self,k):
-        cur = self.head
-        while cur != None:
-            if cur.key == k:
-                if cur.prev != None:
-                    cur.prev.next = cur.next
-                else:
-                    self.head = cur.next
-                if cur.next != None:
-                    cur.next.prev = cur.prev
-                break
-            cur = cur.next
-    def reverse(self):
-        cur = self.head
-        while cur != None:
-            temp = cur.next
-            cur.next = cur.prev
-            cur.prev = temp
-            if temp == None:
-                self.head = cur
-            cur = temp
 
-input_text = sys.stdin.read().splitlines()
-a = list(map(int,input_text[1].split()))
-ll = LinkedList()
-for i in a:
-    ll.addLast(i)
-for i in input_text[2:]:
-    if i.startswith('addlast'):
-        _,k = i.split()
-        ll.addLast(int(k))
-    elif i.startswith('addfirst'):
-        _,k = i.split()
-        ll.addFirst(int(k))
-    elif i.startswith('addafter'):
-        _,u,v = i.split()
-        ll.addAfter(int(u),int(v))
-    elif i.startswith('addbefore'):
-        _,u,v = i.split()
-        ll.addBefore(int(u),int(v))
-    elif i.startswith('remove'):
-        _,k = i.split()
-        ll.remove(int(k))
-    elif i == 'reverse':
-        ll.reverse()
-cur = ll.head
-while cur != None:
-    print(cur.key,end=" ")
-    cur = cur.next
+    def add_first(self, key):
+        if not self.contains(key):
+            new_node = Node(key)
+            new_node.next = self.head
+            self.head = new_node
+
+    def add_last(self, key):
+        if not self.contains(key):
+            new_node = Node(key)
+            if not self.head:
+                self.head = new_node
+            else:
+                current = self.head
+                while current.next:
+                    current = current.next
+                current.next = new_node
+
+    def add_after(self, u, v):
+        if not self.contains(u) and self.contains(v):
+            new_node = Node(u)
+            current = self.head
+            while current:
+                if current.key == v:
+                    new_node.next = current.next
+                    current.next = new_node
+                    break
+                current = current.next
+
+    def add_before(self, u, v):
+        if not self.contains(u) and self.contains(v):
+            new_node = Node(u)
+            if self.head.key == v:
+                new_node.next = self.head
+                self.head = new_node
+            else:
+                current = self.head
+                while current.next:
+                    if current.next.key == v:
+                        new_node.next = current.next
+                        current.next = new_node
+                        break
+                    current = current.next
+
+    def remove(self, key):
+        if self.head and self.head.key == key:
+            self.head = self.head.next
+        else:
+            current = self.head
+            while current and current.next:
+                if current.next.key == key:
+                    current.next = current.next.next
+                    break
+                current = current.next
+
+    def reverse(self):
+        prev = None
+        current = self.head
+        while current:
+            next_node = current.next
+            current.next = prev
+            prev = current
+            current = next_node
+        self.head = prev
+
+    def contains(self, key):
+        current = self.head
+        while current:
+            if current.key == key:
+                return True
+            current = current.next
+        return False
+
+    def to_list(self):
+        result = []
+        current = self.head
+        while current:
+            result.append(current.key)
+            current = current.next
+        return result
+
+def main():
+    import sys
+    input = sys.stdin.read
+    data = input().splitlines()
+
+    n = int(data[0])
+    initial_keys = list(map(int, data[1].split()))
+
+    linked_list = LinkedList()
+    for key in initial_keys:
+        linked_list.add_last(key)
+
+    for line in data[2:]:
+        if line == "#":
+            break
+        parts = line.split()
+        command = parts[0]
+        if command == "addfirst":
+            linked_list.add_first(int(parts[1]))
+        elif command == "addlast":
+            linked_list.add_last(int(parts[1]))
+        elif command == "addafter":
+            linked_list.add_after(int(parts[1]), int(parts[2]))
+        elif command == "addbefore":
+            linked_list.add_before(int(parts[1]), int(parts[2]))
+        elif command == "remove":
+            linked_list.remove(int(parts[1]))
+        elif command == "reverse":
+            linked_list.reverse()
+
+    print(" ".join(map(str, linked_list.to_list())))
+
+if __name__ == "__main__":
+    main()
 
